@@ -4,9 +4,9 @@ import java.awt.event.*;
 
 public class EnigmaFrame extends JFrame {
 
-    private JComboBox<Integer> inner;
-    private JComboBox<Integer> mid;
-    private JComboBox<Integer> out;
+    private JComboBox<String> inner;
+    private JComboBox<String> mid;
+    private JComboBox<String> out;
     private JTextField start;
     private JTextArea inText;
     private JTextArea outText;
@@ -14,26 +14,25 @@ public class EnigmaFrame extends JFrame {
     private JButton dec;
 
     public EnigmaFrame() {
-        super("Enigma GUI");
+        super();
 
-        Integer[] rotors = {1, 2, 3, 4, 5};
-        inner = new JComboBox<>(rotors);
-        mid   = new JComboBox<>(rotors);
-        out   = new JComboBox<>(rotors);
+        setTitle("Enigma GUI");
+
+        String[] rotorNames = { "1", "2", "3", "4", "5" };
+        inner = new JComboBox<String>(rotorNames);
+        mid = new JComboBox<String>(rotorNames);
+        out = new JComboBox<String>(rotorNames);
 
         start = new JTextField(3);
-        inText = new JTextArea(5, 40);
-        inText.setLineWrap(true);
-        inText.setWrapStyleWord(true);
-        outText = new JTextArea(5, 40);
-        outText.setLineWrap(true);
-        outText.setWrapStyleWord(true);
+        inText = new JTextArea(5, 30);
+        outText = new JTextArea(5, 30);
         outText.setEditable(false);
 
         enc = new JButton("Encrypt");
         dec = new JButton("Decrypt");
 
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel top = new JPanel(new FlowLayout());
+
         top.add(new JLabel("Inner"));
         top.add(inner);
         top.add(new JLabel("Middle"));
@@ -45,16 +44,20 @@ public class EnigmaFrame extends JFrame {
         top.add(enc);
         top.add(dec);
 
-        JPanel center = new JPanel(new GridLayout(2, 1));
-        JPanel inPanel = new JPanel(new BorderLayout());
-        inPanel.add(new JLabel("Input"), BorderLayout.WEST);
-        inPanel.add(new JScrollPane(inText), BorderLayout.CENTER);
+        JPanel center = new JPanel();
+        center.setLayout(new BorderLayout());
 
-        JPanel outPanel = new JPanel(new BorderLayout());
-        outPanel.add(new JLabel("Output"), BorderLayout.WEST);
-        outPanel.add(new JScrollPane(outText), BorderLayout.CENTER);
-        center.add(inPanel);
-        center.add(outPanel);
+        JPanel inPanel = new JPanel();
+        inPanel.setLayout(new BorderLayout());
+        inPanel.add(new JLabel("Input"), BorderLayout.NORTH);
+        inPanel.add(inText, BorderLayout.CENTER);
+
+        JPanel outPanel = new JPanel();
+        outPanel.setLayout(new BorderLayout());
+        outPanel.add(new JLabel("Output"), BorderLayout.NORTH);
+        outPanel.add(outText, BorderLayout.CENTER);
+        center.add(inPanel, BorderLayout.NORTH);
+        center.add(outPanel, BorderLayout.CENTER);
 
         setLayout(new BorderLayout());
         add(top, BorderLayout.NORTH);
@@ -63,7 +66,6 @@ public class EnigmaFrame extends JFrame {
         dec.addActionListener(new BtnListener(false));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
-        setLocationRelativeTo(null);
     }
 
     private class BtnListener implements ActionListener {
@@ -74,18 +76,34 @@ public class EnigmaFrame extends JFrame {
             this.doEnc = doEnc;
         }
 
-        @Override
         public void actionPerformed(ActionEvent e) {
-            String mode = doEnc ? "encrypt" : "decrypt";
-            String s = start.getText().trim();
-            String m = inText.getText().trim();
+            String s = start.getText();
 
-            outText.setText(
-                "Mode: " + mode + "\n" +
-                "Start: " + s + "\n" +
-                "Message: " + m + "\n" +
-                "(Real Enigma will be added later.)"
-            );
+            if (s.length() != 3) {
+                outText.setText("Error: Initial positions must be 3 characters, e.g. EST.");
+                return;
+            }
+
+            int r1 = inner.getSelectedIndex() + 1; 
+            int r2 = mid.getSelectedIndex() + 1;
+            int r3 = out.getSelectedIndex() + 1;
+
+            String msg = inText.getText();
+            if (msg.length() == 0) {
+                outText.setText("");
+                return;
+            }
+
+            String[] args = new String[6];
+            args[0] = Integer.toString(r1);   // inner rotor id
+            args[1] = Integer.toString(r2);   // middle rotor id
+            args[2] = Integer.toString(r3);   // outer rotor id
+            args[3] = s;                      // starting positions
+            args[4] = doEnc ? "encrypt" : "decrypt";
+            args[5] = msg;                    // message
+
+            String res = Comms.run(args);
+            outText.setText(res);
         }
     }
 }
