@@ -14,6 +14,15 @@ public class EnigmaFrame extends JFrame {
     private JButton encryptButton;
     private JButton decryptButton;
 
-    
+    public EnigmaFrame() {
+        super("Enigma GUI");
+
+        JLabel label = new JLabel("Enigma GUI");
+        add(label, BorderLayout.CENTER);
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        pack();
+        setLocationRelativeTo(null);
+    }
 
 }
